@@ -1,0 +1,18 @@
+name: eltuiter
+
+services:
+  mongo:
+    image: mongo:8.3.8
+    container_name: mongo_container
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      GLIBC_TUNABLES: "glibc.pthread.rseq=1"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
