@@ -19,6 +19,7 @@ func Registro(ctx context.Context) models.RestApi {
 
 	body := ctx.Value(models.Key("body")).(string)
 
+	fmt.Println("El body: " + body)
 	err := json.Unmarshal([]byte(body), &usuario)
 	if err != nil {
 		restApi.Message = err.Error()
@@ -45,8 +46,7 @@ func Registro(ctx context.Context) models.RestApi {
 		fmt.Println(restApi.Message)
 		return restApi
 	}
-
-	_, status, err := bd.InsertoRegistro(usuario)
+	_, status, err := bd.InsertoRegistro(usuario, ctx.Value(models.Key("database")).(string))
 
 	if err != nil {
 		restApi.Message = "ocurrió un error al intertar realizar el registro del usuario " + err.Error()
