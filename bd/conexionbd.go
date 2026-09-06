@@ -16,7 +16,8 @@ func ContarBD(ctx context.Context) error {
 	user := ctx.Value(models.Key("user")).(string)
 	password := ctx.Value(models.Key("password")).(string)
 	host := ctx.Value(models.Key("host")).(string)
-	connStr := fmt.Sprintf("mongodb+srv://%s:%s@%s/?retryWrites=true&w=majority", user, password, host)
+	database := ctx.Value(models.Key("database")).(string)
+	connStr := fmt.Sprintf("mongodb+srv://%s:%s@%s/%s?retryWrites=true&w=majority", user, password, host, database)
 
 	var clienteOptions = options.Client().ApplyURI(connStr)
 	client, err := mongo.Connect(clienteOptions)
@@ -33,8 +34,6 @@ func ContarBD(ctx context.Context) error {
 
 	fmt.Println("Conexión exitosa con la BD")
 	MongoCN = client
-	DatabaseName := ctx.Value(models.Key("database")).(string)
-	fmt.Println(DatabaseName)
 	return nil
 }
 

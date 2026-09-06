@@ -7,10 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-func InsertoRegistro(usuario models.Usuario) (string, bool, error) {
+func InsertoRegistro(usuario models.Usuario, database string) (string, bool, error) {
 	ctx := context.TODO()
 
-	db := MongoCN.Database(DatabaseName)
+	db := MongoCN.Database(database)
 
 	col := db.Collection("usuario")
 
