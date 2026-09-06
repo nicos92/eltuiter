@@ -34,6 +34,7 @@ func ContarBD(ctx context.Context) error {
 	fmt.Println("Conexión exitosa con la BD")
 	MongoCN = client
 	DatabaseName := ctx.Value(models.Key("database")).(string)
+	fmt.Println(DatabaseName)
 	return nil
 }
 
