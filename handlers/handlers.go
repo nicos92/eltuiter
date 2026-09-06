@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/nicos92/eltuiter/jwt"
 	"github.com/nicos92/eltuiter/models"
 )
 
@@ -14,10 +15,18 @@ func Manejadores(ctx context.Context, request events.APIGatewayProxyRequest) mod
 	var res models.RestApi
 	res.Status = 400
 
+	idOk, statusCode, msg, claim := validoAuthorization(ctx, request)
+
+	if !idOk {
+		res.Status = statusCode
+		res.Message = msg
+		return res
+	}
 	switch ctx.Value(models.Key("method")).(string) {
 	case "POST":
 		switch ctx.Value(models.Key("path")).(string) {
-
+		case "registro":
+			return routers.Registro(ctx)
 		}
 	case "GET":
 		switch ctx.Value(models.Key("path")).(string) {
@@ -36,4 +45,33 @@ func Manejadores(ctx context.Context, request events.APIGatewayProxyRequest) mod
 
 	res.Message = "Method Invalid"
 	return res
+}
+
+func validoAuthorization(ctx context.Context, request events.APIGatewayProxyRequest) (bool, int, string, models.Claim) {
+	path := ctx.Value(models.Key("path")).(string)
+
+	switch path {
+	case "registro", "login", "obtenerAvatar", "obtenerBanner":
+		return true, 200, "", models.Claim{}
+	}
+
+	token := request.Headers["Authorization"]
+	if len(token) == 0 {
+		return false, 401, "token requerido", models.Claim{}
+	}
+
+	claim, todoOK, msg, err := jwt.ProcesoToken(token, ctx.Value(models.Key("jwtsign")).(string))
+
+	if !todoOK {
+		if err != nil {
+			fmt.Println("error en el token " + err.Error())
+			return false, 401, err.Error(), models.Claim{}
+		}
+		fmt.Println("error en el token " + msg)
+		return false, 401, msg, models.Claim{}
+
+	}
+
+	fmt.Println("Token OK")
+	return true, 200, msg, *claim
 }
