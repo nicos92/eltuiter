@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/nicos92/eltuiter/jwt"
 	"github.com/nicos92/eltuiter/models"
+	"github.com/nicos92/eltuiter/routers"
 )
 
 func Manejadores(ctx context.Context, request events.APIGatewayProxyRequest) models.RestApi {
