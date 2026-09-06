@@ -26,7 +26,7 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 	if !ValidoParametros() {
 		res = &events.APIGatewayProxyResponse{
 			StatusCode: 400,
-			Body:       "error en las variables de entorno. deben incluir 'SecretName', 'BucketName', 'UrlPrefix'",
+			Body:       "error en las variables de entorno. deben incluir 'secretsame', 'bucketname', 'urlprefix'",
 			Headers: map[string]string{
 				"Content-Type": "application/json",
 			},
@@ -34,7 +34,7 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return res, nil
 	}
 
-	SecretModel, err := secretmanager.GetSecret(os.Getenv("SecretName"))
+	SecretModel, err := secretmanager.GetSecret(os.Getenv("secretname"))
 	if err != nil {
 		res = &events.APIGatewayProxyResponse{
 			StatusCode: 400,
@@ -46,7 +46,7 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return res, nil
 	}
 
-	path := strings.Replace(request.PathParameters["eltuiter"], os.Getenv("UrlPrefix"), "", -1)
+	path := strings.Replace(request.PathParameters["eltuiter"], os.Getenv("urlprefix"), "", -1)
 
 	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("path"), path)
 	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("method"), request.HTTPMethod)
@@ -56,7 +56,7 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("database"), SecretModel.Database)
 	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("jwtsign"), SecretModel.JWTSign)
 	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("body"), request.Body)
-	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("bucketName"), os.Getenv("BucketName"))
+	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("bucketname"), os.Getenv("bucketname"))
 
 	// chequeo conexión con la BD
 	//
@@ -89,15 +89,15 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 }
 
 func ValidoParametros() bool {
-	_, SecretName := os.LookupEnv("SecretName")
+	_, SecretName := os.LookupEnv("secretsame")
 	if !SecretName {
 		return SecretName
 	}
-	_, BucketName := os.LookupEnv("BucketName")
+	_, BucketName := os.LookupEnv("bucketname")
 	if !BucketName {
 		return BucketName
 	}
-	_, UrlPrefix := os.LookupEnv("UrlPrefix")
+	_, UrlPrefix := os.LookupEnv("urlprefix")
 	if !UrlPrefix {
 		return UrlPrefix
 	}
