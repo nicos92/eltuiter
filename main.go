@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
+	lambda "github.com/aws/aws-lambda-go/lambda"
 	"github.com/nicos92/eltuiter/awsgo"
 	"github.com/nicos92/eltuiter/bd"
 	"github.com/nicos92/eltuiter/handlers"
@@ -26,7 +27,7 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 	if !ValidoParametros() {
 		res = &events.APIGatewayProxyResponse{
 			StatusCode: 400,
-			Body:       "error en las variables de entorno. deben incluir 'secretsame', 'bucketname', 'urlprefix'",
+			Body:       "error en las variables de entorno. deben incluir 'secretname', 'bucketname', 'urlprefix'",
 			Headers: map[string]string{
 				"Content-Type": "application/json",
 			},
@@ -46,7 +47,14 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return res, nil
 	}
 
-	path := strings.Replace(request.PathParameters["eltuiter"], os.Getenv("urlprefix"), "", -1)
+	fmt.Println("Chequeo agregar todo al contexto")
+
+	pathParam, ok := request.PathParameters["eltuiter-resource"]
+	if !ok || pathParam == "" {
+		// Si PathParameters es nil o no trae la clave, usa la ruta completa directa
+		pathParam = request.Path
+	}
+	path := strings.ReplaceAll(request.PathParameters["eltuiter-resource"], os.Getenv("urlprefix"), "")
 
 	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("path"), path)
 	awsgo.Ctx = context.WithValue(awsgo.Ctx, models.Key("method"), request.HTTPMethod)
@@ -61,9 +69,11 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 	// chequeo conexión con la BD
 	//
 
+	fmt.Println("Chequeo la conexion con la base de datos. - El path: " + path)
 	err = bd.ContarBD(awsgo.Ctx)
 
 	if err != nil {
+		fmt.Print("error al conectar la BD" + err.Error())
 		res = &events.APIGatewayProxyResponse{
 			StatusCode: 500,
 			Body:       "error conectando a la BD" + err.Error(),
@@ -74,6 +84,7 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return res, nil
 	}
 
+	fmt.Println("Configuro los handlers")
 	resApi := handlers.Manejadores(awsgo.Ctx, request)
 	if resApi.CustomResp == nil {
 		res = &events.APIGatewayProxyResponse{
@@ -84,12 +95,14 @@ func EjecutoLambda(ctx context.Context, request events.APIGatewayProxyRequest) (
 			},
 		}
 		return res, nil
+	} else {
+
+		return resApi.CustomResp, nil
 	}
-	return resApi.CustomResp, nil
 }
 
 func ValidoParametros() bool {
-	_, SecretName := os.LookupEnv("secretsame")
+	_, SecretName := os.LookupEnv("secretname")
 	if !SecretName {
 		return SecretName
 	}
