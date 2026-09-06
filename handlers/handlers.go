@@ -27,6 +27,7 @@ func Manejadores(ctx context.Context, request events.APIGatewayProxyRequest) mod
 	case "POST":
 		switch ctx.Value(models.Key("path")).(string) {
 		case "registro":
+			fmt.Println("Entro al registro")
 			return routers.Registro(ctx)
 		}
 	case "GET":
@@ -37,7 +38,7 @@ func Manejadores(ctx context.Context, request events.APIGatewayProxyRequest) mod
 		switch ctx.Value(models.Key("path")).(string) {
 
 		}
-	case "DELELE":
+	case "DELETE":
 		switch ctx.Value(models.Key("path")).(string) {
 
 		}
@@ -51,12 +52,14 @@ func Manejadores(ctx context.Context, request events.APIGatewayProxyRequest) mod
 func validoAuthorization(ctx context.Context, request events.APIGatewayProxyRequest) (bool, int, string, models.Claim) {
 	path := ctx.Value(models.Key("path")).(string)
 
+	fmt.Println("El path: " + path)
 	switch path {
 	case "registro", "login", "obtenerAvatar", "obtenerBanner":
 		return true, 200, "", models.Claim{}
 	}
 
 	token := request.Headers["Authorization"]
+	fmt.Println("Toekn: " + token)
 	if len(token) == 0 {
 		return false, 401, "token requerido", models.Claim{}
 	}
