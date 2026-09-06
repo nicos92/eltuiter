@@ -19,7 +19,7 @@ func ContarBD(ctx context.Context) error {
 	connStr := fmt.Sprintf("mongodb+srv://%s:%s@%s/?retryWrites=true&w=majority", user, password, host)
 
 	var clienteOptions = options.Client().ApplyURI(connStr)
-	client, err := mongo.Connect(ctx, clienteOptions)
+	client, err := mongo.Connect(clienteOptions)
 	if err != nil {
 		fmt.Println(err.Error())
 		return err
